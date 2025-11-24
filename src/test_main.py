@@ -3,7 +3,7 @@ from unittest.mock import patch
 from main import add, subtract, multiply, divide, calculator
 
 class TestCalculator(unittest.TestCase):
-
+ 
     # ------------------- ADD -------------------
     def test_add(self):
         self.assertEqual(add(3, 4), 7)
