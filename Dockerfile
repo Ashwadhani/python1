@@ -1,4 +1,5 @@
 # Use official Python 3.10 image
+EXPOSE 8000
 FROM python:3.10-slim
 
 # Set working directory
