@@ -1,4 +1,4 @@
-name: OWASP ZAP DAST Scan
+name: Build
 
 on:
   push:
@@ -8,30 +8,36 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  zap-dast:
-    name: ZAP Baseline Scan
+  sonarqube:
+    name: Unit Tests + SonarQube
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build and Run Docker App
-        run: |
-          docker build -t my-app:latest .
-          docker run -d -p 8000:8000 --name my-app-container my-app:latest
-          sleep 10  # wait for app to start
-
-      - name: Run ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.14.0  # updated version
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          target: 'http://localhost:8000'
-          rules_file_name: 'rules-ignore.txt'
-          fail_on_risk: 'medium'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          python-version: "3.10"
 
-      - name: Stop Docker Container
+      - name: Install dependencies
         run: |
-          docker stop my-app-container
-          docker rm my-app-container
+          pip install -r requirements.txt
+          pip install coverage
+
+      - name: Run Unit Tests
+        run: |
+          coverage run -m unittest discover -s . -p "test_*.py"
+          coverage xml
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        with:
+          args: >
+            -Dsonar.projectKey=Ashwadhani_python
+            -Dsonar.organization=ashwadhani
+            -Dsonar.sources=.
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
