@@ -1,19 +1,18 @@
 # Use official Python 3.10 image
-EXPOSE 8000
 FROM python:3.10-slim
 
 # Set working directory
 WORKDIR /app
 
-# Copy requirements and install dependencies
+# Copy dependencies and install
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source code
-COPY src/ ./src
+COPY src/ .
 
-# Set environment variable to avoid Python buffering output
-ENV PYTHONUNBUFFERED=1
+# Expose port 8000
+EXPOSE 8000
 
-# Default command: run tests with coverage
-CMD ["bash", "-c", "PYTHONPATH=src coverage run -m unittest discover -s src -p 'test_*.py' && coverage report"]
+# Command to run the app
+CMD ["python", "app.py"]
