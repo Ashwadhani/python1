@@ -1,18 +1,21 @@
-# Use official Python 3.10 image
-FROM python:3.10-slim
+# Dockerfile
+FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
 
-# Copy dependencies and install
+# Copy only required files
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+
+# Upgrade pip and install dependencies
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 
 # Copy source code
-COPY src/ .
+COPY src/ src/
 
-# Expose port 8000
+# Expose port
 EXPOSE 8000
 
-# Command to run the app
-CMD ["python", "app.py"]
+# Command to run FastAPI
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
