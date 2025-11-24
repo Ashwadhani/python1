@@ -9,32 +9,28 @@ on:
 
 jobs:
   zap-dast:
-    name: OWASP ZAP Scan
+    name: ZAP Baseline Scan
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Step 2: Build and run the app (on port 8000)
       - name: Build and Run Docker App
         run: |
           docker build -t my-app:latest .
           docker run -d -p 8000:8000 --name my-app-container my-app:latest
-          sleep 10  # wait for app to be ready
+          sleep 10  # wait for app to start
 
-      # Step 3: Run OWASP ZAP Scan
       - name: Run ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v1
+        uses: zaproxy/action-baseline@v0.14.0  # updated version
         with:
-          target: 'http://localhost:8000'  # Updated to port 8000
+          target: 'http://localhost:8000'
           rules_file_name: 'rules-ignore.txt'
           fail_on_risk: 'medium'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 4: Stop Docker Container
       - name: Stop Docker Container
         run: |
           docker stop my-app-container
