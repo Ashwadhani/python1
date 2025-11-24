@@ -1,4 +1,4 @@
-name: Build
+name: OWASP ZAP DAST Scan
 
 on:
   push:
@@ -8,41 +8,34 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  sonarqube:
-    name: Unit Tests + SonarQube
+  zap-dast:
+    name: OWASP ZAP Scan
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout repository
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0   # Required for SonarQube scan
+      # Step 1: Checkout code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      # Step 2: Setup Python
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-
-      # Step 3: Install dependencies
-      - name: Install Dependencies
+      # Step 2: Build and run the app (on port 8000)
+      - name: Build and Run Docker App
         run: |
-          pip install coverage
+          docker build -t my-app:latest .
+          docker run -d -p 8000:8000 --name my-app-container my-app:latest
+          sleep 10  # wait for app to be ready
 
-      # Step 4: Run Unit Tests with Coverage
-      - name: Run Unit Tests with Coverage
-        run: |
-          coverage run -m unittest discover -s src -p "test_*.py"
-          coverage xml
-
-      # Step 5: SonarQube Scan
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v6
+      # Step 3: Run OWASP ZAP Scan
+      - name: Run ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v1
         with:
-          args: >
-            -Dsonar.projectKey=Ashwadhani_python
-            -Dsonar.organization=ashwadhani
-            -Dsonar.sources=src
-            -Dsonar.python.coverage.reportPaths=coverage.xml
+          target: 'http://localhost:8000'  # Updated to port 8000
+          rules_file_name: 'rules-ignore.txt'
+          fail_on_risk: 'medium'
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 4: Stop Docker Container
+      - name: Stop Docker Container
+        run: |
+          docker stop my-app-container
+          docker rm my-app-container
