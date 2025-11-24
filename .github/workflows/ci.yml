@@ -74,7 +74,14 @@ jobs:
 
 
       # 10. SonarQube scan
-      - uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        with:
+          args: >
+            -Dsonar.projectKey=Ashwadhani_python
+            -Dsonar.organization=ashwadhani
+            -Dsonar.sources=.
+            -Dsonar.python.coverage.reportPaths=./coverage.xml
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_SCANNER_OPTS: -Dsonar.python.coverage.reportPaths=./coverage.xml
+             SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
